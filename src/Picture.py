@@ -1,4 +1,5 @@
 import numpy as np
+from os import getcwd, mkdir, path
 
 from PIL import Image
 
@@ -16,7 +17,7 @@ async def stylizeStabiliesForPic(stabilities, style, reso, max_stability):
     
     return stylizedPoints
 
-async def generatePicFromStylizedPoints(stylizedPoints, reso):
+async def generatePicFromStylizedPoints(stylizedPoints, reso, id):
 
     formattedStylizedArray = np.zeros((reso[1], reso[0], 4), dtype=np.uint8)
 
@@ -34,7 +35,15 @@ async def generatePicFromStylizedPoints(stylizedPoints, reso):
             p_counter = p_counter + 1
     
     im = Image.fromarray(formattedStylizedArray, mode="RGBA")
+    if (path.exists(getcwd() +"\\src\\generated\\")):
+        pass
+    else:
+        mkdir(getcwd() +"\\src\\generated\\")
+    newFilename = getcwd() +"\\src\\generated\\" + str(id) + ".png"
+    print("FILE PATH: ", newFilename)
+    im.save(newFilename)
+    im = Image.open(newFilename)
+    im.show()
 
-    im.show(title='sample')
     
     return 1
