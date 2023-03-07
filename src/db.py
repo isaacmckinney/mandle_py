@@ -31,7 +31,13 @@ async def fetchStabilitiesById(id):
     rows = cur.fetchall()
     #print(rows[0][1])
     return { "id": id, "stabilities": rows[0][0], "max_stability": rows[0][1] }
-    
+
+async def fetchShotForCopy(id):
+    cur = conn.cursor()
+    query="""SELECT name, limits, reso, max_stability FROM public.shot WHERE id = %d""" % ( id )
+    cur.execute( query )
+    rows = cur.fetchall()
+    return { "id": id, "name": rows[0][0], "limits": rows[0][1], "reso": rows[0][2], "max_stability": rows[0][3] }
 
 # terminal command to start db
 # psql -h localhost -p 5432 -U postgres -f db.sql
