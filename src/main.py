@@ -5,7 +5,7 @@ from flask_restful import Resource, Api
 
 import Shot
 import Picture
-from db import createNewShotEntry, fetchShotById, updateStabilitiesById, fetchStabilitiesById
+from db import createNewShotEntry, fetchShotById, updateStabilitiesById, fetchStabilitiesById, fetchShotForCopy
 
 app = Flask(__name__)
 
@@ -96,7 +96,29 @@ async def createPicFromStabilities():
             #print(stabilityVals['stabilities'][:50])
             stylizedArray = await Picture.stylizeStabiliesForPic( stabilityVals['stabilities'], ROYGBIV, shot_props['reso'], stabilityVals['max_stability'] )
             #print(stylizedArray[:25])
-            pic = await Picture.generatePicFromStylizedPoints( stylizedArray, shot_props['reso'],  )
+            pic = await Picture.generatePicFromStylizedPoints( stylizedArray, shot_props['reso'], request.json['id'] )
+
+            
+
+            return 'success', 200
+        else:
+            abort(400)
+    else:
+        abort(400)
+
+@app.route('/createShotFromZoom', methods=['POST'])
+async def createShotFromZoom():
+
+    if request.method == 'POST':
+        if (request.json['id'] != None and request.json['zoomDiv'] != None and request.json['selection'] != None):
+
+            shot_props = await fetchShotForCopy( request.json['id'] )
+
+            newLimits = await Shot.zoomBounds( shot_props['limits'], request.json['zoomDiv'], request.json['selection'] )
+
+            await createNewShotEntry( shot_props['name'], newLimits['limits'], shot_props['reso'], shot_props['max_stability'] )
+
+            
 
             return 'success', 200
         else:
