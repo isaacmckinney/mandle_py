@@ -34,6 +34,19 @@ async def checkStability(points, z, steps):
     
     return stabilityList
 
+async def zoomBounds(limits, divSize, selection):
+    changedLimits = limits.copy()
+
+    xDiv = ( limits[1] - limits[0] ) / divSize
+    yDiv = ( limits[3] - limits[2] ) / divSize
+
+    changedLimits[0] = changedLimits[0] + ( ( selection % divSize ) * xDiv )
+    changedLimits[1] = changedLimits[1] - ( ( ( divSize - 1 ) - ( selection % divSize ) ) * xDiv )
+    changedLimits[2] = changedLimits[2] + ( ( ( divSize - 1 ) - ( selection // divSize ) ) * yDiv )
+    changedLimits[3] = changedLimits[3] - ( ( selection // divSize ) * yDiv )
+
+    return { "limits":changedLimits }
+
 
 class Shot:
 
