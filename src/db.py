@@ -4,6 +4,9 @@ from dotenv import dotenv_values
 
 config = dotenv_values(".env")
 
+# create entry in db for new shot, returning the auto-generated row id
+# Params
+# name: string, limits: [float, float, float, float], reso: [int, int], maxStability: int
 async def createNewShotEntry(name, limits, reso, maxStability):
     name = '\'' + name + '\''
     cur = conn.cursor()
@@ -13,12 +16,18 @@ async def createNewShotEntry(name, limits, reso, maxStability):
     conn.commit()
     return newId
 
+# update stabilities column for row containing unique id
+# Params
+# name: id: string, stabilities: [int, ... ]
 async def updateStabilitiesById(id, stabilities):
     cur = conn.cursor()
     query="""UPDATE public.shot SET stabilities = %s WHERE id = %d""" % ( 'ARRAY ' + str(stabilities), id )
     cur.execute( query )
     conn.commit()
 
+# fetch limits, reso columns from row containing unique id
+# Params
+# name: id: string
 async def fetchShotById(id):
     cur = conn.cursor()
     query="""SELECT limits, reso FROM public.shot WHERE id = %d""" % ( id )
@@ -26,6 +35,9 @@ async def fetchShotById(id):
     rows = cur.fetchall()
     return { "id": id, "limits": rows[0][0], "reso": rows[0][1] }
 
+# fetch stabilities column from row containing unique id
+# Params
+# name: id: string
 async def fetchStabilitiesById(id):
     cur = conn.cursor()
     query="""SELECT stabilities, max_stability FROM public.shot WHERE id = %d""" % ( id )
@@ -34,6 +46,9 @@ async def fetchStabilitiesById(id):
     #print(rows[0][1])
     return { "id": id, "stabilities": rows[0][0], "max_stability": rows[0][1] }
 
+# fetch neccesary info to create copy of existing shot
+# Params
+# name: id: string
 async def fetchShotForCopy(id):
     cur = conn.cursor()
     query="""SELECT name, limits, reso, max_stability FROM public.shot WHERE id = %d""" % ( int(id) )
@@ -41,6 +56,7 @@ async def fetchShotForCopy(id):
     rows = cur.fetchall()
     return { "id": id, "name": rows[0][0], "limits": rows[0][1], "reso": rows[0][2], "max_stability": rows[0][3] }
 
+# fetch basic info for all shots in db
 async def fetchAllShotsInfo():
     cur = conn.cursor()
     query="""SELECT id, name, limits, reso FROM public.shot"""

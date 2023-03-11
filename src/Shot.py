@@ -1,4 +1,7 @@
 
+# uses the limits and desired pixel resolution to calculate 2D coordinate (or complex number) points on plane
+# Params
+# limits: [float, float, float, float], reso: [int, int]
 async def createPointsList(limits, reso):
         
         newPointsList = []
@@ -14,6 +17,11 @@ async def createPointsList(limits, reso):
         
         return newPointsList
 
+# uses generated coordinate points of shot to check stability value of each pixel, which will encode for coloring
+# Params
+# points: [ [float, float], ... ], z: float, steps: int
+# z: z-value for exponential operation ('2' would be the mandlebrot set)
+# steps: max number of times the method will iterate on a value before declaring it the max value
 async def checkStability(points, z, steps):
     stabilityList = []
     p_counter = 0
@@ -34,6 +42,11 @@ async def checkStability(points, z, steps):
     
     return stabilityList
 
+# uses existing limits to create new, smaller bounding limits for a new shot
+# Params
+# limits: [float, float, float, float], divSize: int, selection: int
+# # divSize: defines the number of divisions on a shot to zoom to
+# selection: indicates which 'divSize' was selected to zoom to
 async def zoomBounds(limits, divSize, selection):
     changedLimits = limits.copy()
 

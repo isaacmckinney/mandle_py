@@ -10,8 +10,7 @@ from db import createNewShotEntry, fetchShotById, updateStabilitiesById, fetchSt
 app = Flask(__name__)
 cors = CORS(app)
 
-p = "Here We Go!"
-
+# Rainbow sequence
 ROYGBIV = [ 
     [148, 0, 211, 255], 
     [75, 0, 130, 255], 
@@ -21,6 +20,10 @@ ROYGBIV = [
     [255, 127, 0, 255], 
     [255, 0 , 0, 255] 
 ]
+
+#######################################################################
+#################### Example Template Webhooks ########################
+#######################################################################
 
 @app.route('/webhook', methods=['POST'])
 def webhook():
@@ -34,7 +37,6 @@ def webhook():
 @app.route('/testHook', methods=['GET'])
 def testHook():
     if request.method == 'GET':
-        print(p)
         return make_response(jsonify({'data': str(p)})), 200
     else:
         abort(400)
@@ -47,6 +49,13 @@ def testBook(testVar=None):
     else:
         abort(400)
 
+#######################################################################
+############################## END ####################################
+#######################################################################
+
+# Create a new Shot entry in the db, ready to calculate stabilities
+# Expected attributes in JSON request
+# name: string, limits: [float, float, float, float], reso: [int, int], maxStability: int
 @app.route('/createNewShot', methods=['POST'])
 async def createNewShot():
 
@@ -58,18 +67,20 @@ async def createNewShot():
             await createNewShotEntry(request.json['name'], request.json['limits'], request.json['reso'], request.json['maxStability'])
 
             return 'success', 200
+        
         else:
             abort(400)
     else:
         abort(400)
 
+# Calculate stabilities for existing shot entry
+# Expected attributes in JSON request
+# id: string, max_stability: int, z_value: float
 @app.route('/calculateStabilitiesById', methods=['POST'])
 async def calculateStabilitiesById():
 
     if request.method == 'POST':
         if (request.json['id'] != None and request.json['max_stability'] != None and request.json['z_value'] != None):
-
-            #newShot = Shot.Shot(request.json['name'], request.json['limits'], request.json['reso'], request.json['maxStability'])
 
             shot_props = await fetchShotById( request.json['id'] )
 
@@ -80,11 +91,15 @@ async def calculateStabilitiesById():
             await updateStabilitiesById( request.json['id'], stabilityVals )
 
             return make_response(jsonify({"Status": "success"})), 200
+        
         else:
             abort(400)
     else:
         abort(400)
 
+# Generate image from calculated stabilities of existing shot in db
+# Expected attributes in JSON request
+# id: string
 @app.route('/createPicFromStabilities', methods=['POST'])
 async def createPicFromStabilities():
 
@@ -94,19 +109,23 @@ async def createPicFromStabilities():
             shot_props = await fetchShotById( request.json['id'] )
 
             stabilityVals = await fetchStabilitiesById( request.json['id'] )
-            #print(stabilityVals['stabilities'][:50])
+
             stylizedArray = await Picture.stylizeStabiliesForPic( stabilityVals['stabilities'], ROYGBIV, shot_props['reso'], stabilityVals['max_stability'] )
-            #print(stylizedArray[:25])
+
             pic = await Picture.generatePicFromStylizedPoints( stylizedArray, shot_props['reso'], request.json['id'] )
 
-            
-
             return make_response(jsonify({"Status": "success"})), 200
+        
         else:
             abort(400)
     else:
         abort(400)
 
+# Create new shot from zooming in on existing shot
+# Expected attributes in JSON request
+# id: string, zoomDiv: int, selection: int
+# zoomDiv: defines the number of divisions on a shot to zoom to
+# selection: indicates which 'zoomDiv' was selected to zoom to
 @app.route('/createShotFromZoom', methods=['POST'])
 async def createShotFromZoom():
 
@@ -118,20 +137,21 @@ async def createShotFromZoom():
             newLimits = await Shot.zoomBounds( shot_props['limits'], request.json['zoomDiv'], request.json['selection'] )
 
             newId = await createNewShotEntry( shot_props['name'], newLimits['limits'], shot_props['reso'], shot_props['max_stability'] )
-
-            print("THIS IS THE ONE: ", newId)
             
             return make_response(jsonify({"Status": "success", "id": newId})), 200
+        
         else:
             abort(400)
     else:
         abort(400)
 
+# fetch local .png rendering of shot and respond with the file
+# Expected parameter in webhook URL
+# id: string
 @app.route('/fetchPicture/<id>', methods=['GET'])
 async def fetchPicture(id=None):
     if request.method == 'GET':
         
-        #shot_props = await fetchShotById( id )
         img = await Picture.getPictureFilePath( id )
             
         return send_file( img['filepath'] )
@@ -139,10 +159,10 @@ async def fetchPicture(id=None):
     else:
         abort(400)
 
+# fetch local .png rendering of shot and respond with the file
 @app.route('/fetchShotIds', methods=['GET'])
 async def fetchShotIds():
     if request.method == 'GET':
-        
 
         shots_data = await fetchAllShotsInfo()
             

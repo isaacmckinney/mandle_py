@@ -3,6 +3,10 @@ from os import getcwd, mkdir, path
 
 from PIL import Image
 
+# uses calculated stabilities to generate list of color values to be used in generating .png rendering of shot
+# Params
+# stabilities: [int, ... ], style: [ [int, int, int, int], ... ], reso: [int, int], max_stability: int
+# style: sequence of RGBA colors
 async def stylizeStabiliesForPic(stabilities, style, reso, max_stability):
 
     size = reso[0] * reso[1]
@@ -17,6 +21,10 @@ async def stylizeStabiliesForPic(stabilities, style, reso, max_stability):
     
     return stylizedPoints
 
+# uses stylized points list to generate .png rendering of shot
+# Params
+# stylizedPoints: [ [int, int, int, int], ... ], reso: [int, int], id: string
+# stylizedPoints: sequence of RGBA color values for pixels, length will be reso[0]*reso[1]
 async def generatePicFromStylizedPoints(stylizedPoints, reso, id):
 
     formattedStylizedArray = np.zeros((reso[1], reso[0], 4), dtype=np.uint8)
@@ -42,12 +50,14 @@ async def generatePicFromStylizedPoints(stylizedPoints, reso, id):
     newFilename = getcwd() +"\\src\\generated\\" + str(id) + ".png"
     print("FILE PATH: ", newFilename)
     im.save(newFilename)
-    #im = Image.open(newFilename)
-    #im.show()
+
 
     
     return 1
 
+# uses unique shot id to fetch local .png file
+# Params
+# id: string
 async def getPictureFilePath(id):
     filename = getcwd() +"\\src\\generated\\" + str(id) + ".png"
     
