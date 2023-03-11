@@ -1,13 +1,14 @@
-from flask import Flask, jsonify, request, make_response
+from flask import Flask, jsonify, request, make_response, Response, send_file
 from flask_restful import Resource, Api
-
+from flask_cors import CORS
 
 
 import Shot
 import Picture
-from db import createNewShotEntry, fetchShotById, updateStabilitiesById, fetchStabilitiesById, fetchShotForCopy
+from db import createNewShotEntry, fetchShotById, updateStabilitiesById, fetchStabilitiesById, fetchShotForCopy, fetchAllShotsInfo
 
 app = Flask(__name__)
+cors = CORS(app)
 
 p = "Here We Go!"
 
@@ -78,7 +79,7 @@ async def calculateStabilitiesById():
 
             await updateStabilitiesById( request.json['id'], stabilityVals )
 
-            return 'success', 200
+            return make_response(jsonify({"Status": "success"})), 200
         else:
             abort(400)
     else:
@@ -100,7 +101,7 @@ async def createPicFromStabilities():
 
             
 
-            return 'success', 200
+            return make_response(jsonify({"Status": "success"})), 200
         else:
             abort(400)
     else:
@@ -116,13 +117,37 @@ async def createShotFromZoom():
 
             newLimits = await Shot.zoomBounds( shot_props['limits'], request.json['zoomDiv'], request.json['selection'] )
 
-            await createNewShotEntry( shot_props['name'], newLimits['limits'], shot_props['reso'], shot_props['max_stability'] )
+            newId = await createNewShotEntry( shot_props['name'], newLimits['limits'], shot_props['reso'], shot_props['max_stability'] )
 
+            print("THIS IS THE ONE: ", newId)
             
-
-            return 'success', 200
+            return make_response(jsonify({"Status": "success", "id": newId})), 200
         else:
             abort(400)
+    else:
+        abort(400)
+
+@app.route('/fetchPicture/<id>', methods=['GET'])
+async def fetchPicture(id=None):
+    if request.method == 'GET':
+        
+        #shot_props = await fetchShotById( id )
+        img = await Picture.getPictureFilePath( id )
+            
+        return send_file( img['filepath'] )
+
+    else:
+        abort(400)
+
+@app.route('/fetchShotIds', methods=['GET'])
+async def fetchShotIds():
+    if request.method == 'GET':
+        
+
+        shots_data = await fetchAllShotsInfo()
+            
+        return make_response(jsonify({'data': shots_data['results']})), 200
+
     else:
         abort(400)
 
