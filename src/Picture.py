@@ -42,8 +42,13 @@ async def generatePicFromStylizedPoints(stylizedPoints, reso, id):
     newFilename = getcwd() +"\\src\\generated\\" + str(id) + ".png"
     print("FILE PATH: ", newFilename)
     im.save(newFilename)
-    im = Image.open(newFilename)
-    im.show()
+    #im = Image.open(newFilename)
+    #im.show()
 
     
     return 1
+
+async def getPictureFilePath(id):
+    filename = getcwd() +"\\src\\generated\\" + str(id) + ".png"
+    
+    return { "filepath": filename }
