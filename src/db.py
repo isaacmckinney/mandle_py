@@ -46,7 +46,7 @@ async def fetchAllShotsInfo():
     query="""SELECT id, name, limits, reso FROM public.shot"""
     cur.execute( query )
     rows = cur.fetchall()
-    print(rows)
+    #print(rows)
     theRows = []
     for row in rows:
         tempLimits = row[2].copy()
